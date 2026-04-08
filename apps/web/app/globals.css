@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/* ── Tools Act Design System ─────────────────────────────────────────────── */
+:root {
+  /* Layout */
+  --color-header-bg:      #0f3d47;
+  --color-sidebar-bg:     #f5f6f8;
+  --color-sidebar-hover:  #e6e9ef;
+  --color-sidebar-active: #dceff2;
+  --color-sidebar-text:   #323338;
+
+  /* Brand */
+  --color-accent:       #00897b;
+  --color-accent-dark:  #006b5e;
+  --color-accent-light: #e0f2f1;
+
+  /* Text */
+  --color-text-primary:   #323338;
+  --color-text-secondary: #676879;
+
+  /* Borders & backgrounds */
+  --color-border:    #e6e9ef;
+  --color-bg:        #ffffff;
+  --color-bg-subtle: #f5f6f8;
+  --color-bg-hover:  #f0f2f5;
+
+  /* Link */
+  --color-link: #0073ea;
+
+  /* Status badges — Rental */
+  --color-status-order-received: #fdab3d;
+  --color-status-preparing:      #579bfc;
+  --color-status-delivered:      #9b59b6;
+  --color-status-active:         #00c875;
+  --color-status-returning:      #e67e22;
+  --color-status-closed:         #c4c4c4;
+  --color-status-cancelled:      #e44258;
+
+  /* Status badges — Equipment */
+  --color-equip-available:   #00c875;
+  --color-equip-rented:      #579bfc;
+  --color-equip-maintenance: #fdab3d;
+  --color-equip-retired:     #c4c4c4;
+
+  /* Semantic */
+  --color-success: #00c875;
+  --color-warning: #fdab3d;
+  --color-error:   #e44258;
+  --color-info:    #579bfc;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ── Theme ───────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text-primary);
+  --font-sans: 'Figtree', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: 'Figtree', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Focus Rings ─────────────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Form Inputs ─────────────────────────────────────────────────────────── */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.12);
+}
+
+input::placeholder, textarea::placeholder {
+  color: #b4b7c3;
+}
+
+/* ── Buttons Base ────────────────────────────────────────────────────────── */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 6px; height: 6px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #d0d3de; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #b0b4c4; }
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+.text-secondary { color: var(--color-text-secondary); }
+
+/* ── Skeleton Loader ─────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eff0f3 25%, #e4e6ea 50%, #eff0f3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Fade-in Animation ───────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.18s ease-out both;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--color-bg-hover); }
+.data-table tbody tr.clickable { cursor: pointer; }
+
+/* ── Status Pill ─────────────────────────────────────────────────────────── */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

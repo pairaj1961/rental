@@ -1,0 +1,14 @@
+{
+  "name": "rental-root",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev:api": "pnpm --filter @rental/api dev",
+    "dev:web": "pnpm --filter equipment-rental dev",
+    "build:api": "pnpm --filter @rental/api build",
+    "build:web": "pnpm --filter equipment-rental build",
+    "db:migrate": "pnpm --filter @rental/api db:migrate",
+    "db:seed": "pnpm --filter @rental/api db:seed",
+    "db:studio": "pnpm --filter @rental/api db:studio"
+  }
+}
