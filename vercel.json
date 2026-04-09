@@ -1,6 +1,6 @@
 {
   "buildCommand": "pnpm --filter equipment-rental build",
   "outputDirectory": "apps/web/.next",
-  "installCommand": "pnpm install",
+  "installCommand": "npm install -g pnpm@9 && pnpm install --no-frozen-lockfile",
   "framework": "nextjs"
 }
