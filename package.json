@@ -2,6 +2,9 @@
   "name": "rental-root",
   "private": true,
   "version": "0.0.1",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev:api": "pnpm --filter @rental/api dev",
     "dev:web": "pnpm --filter equipment-rental dev",
