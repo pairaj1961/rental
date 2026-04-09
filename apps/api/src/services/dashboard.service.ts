@@ -53,7 +53,7 @@ async function getManagerDashboard(app: FastifyInstance) {
     : 0;
 
   return {
-    role: actorRole,
+    role: UserRole.ADMIN,
     kpis: {
       totalActiveContracts,
       overdueContracts,
