@@ -4,8 +4,8 @@ import { verifyToken, type UserRole } from './lib/auth';
 
 // ── Role → allowed route prefixes ─────────────────────────────────────────────
 const ADMIN_ROUTES    = ['*'];
-const PRODUCTION_ROUTES = ['/dashboard', '/equipment', '/maintenance', '/delivery'];
-const MANAGER_ROUTES  = ['/dashboard', '/rentals', '/contracts', '/customers', '/equipment', '/reports'];
+const PRODUCTION_ROUTES = ['/dashboard', '/equipment', '/maintenance', '/deliveries', '/delivery'];
+const MANAGER_ROUTES  = ['/dashboard', '/rentals', '/contracts', '/customers', '/equipment', '/reports', '/invoices', '/deliveries'];
 const REP_ROUTES      = ['/dashboard', '/rentals', '/contracts', '/customers'];
 
 const ROLE_ROUTES: Partial<Record<UserRole, string[]>> = {
@@ -48,7 +48,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     pathname.startsWith('/reports') ||
     pathname.startsWith('/audit-logs') ||
     pathname.startsWith('/maintenance') ||
-    pathname.startsWith('/delivery');
+    pathname.startsWith('/deliveries') ||
+    pathname.startsWith('/delivery') ||
+    pathname.startsWith('/invoices') ||
+    pathname.startsWith('/settings');
 
   if (!isProtected) return NextResponse.next();
 

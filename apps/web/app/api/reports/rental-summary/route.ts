@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       data: {
         period: { from, to },
         total,
-        active: (byStatusMap['ACTIVE'] ?? 0) + (byStatusMap['PENDING'] ?? 0),
+        active: (byStatusMap['ACTIVE'] ?? 0) + (byStatusMap['EXTENDED'] ?? 0),
         completed: byStatusMap['COMPLETED'] ?? 0,
         cancelled: byStatusMap['CANCELLED'] ?? 0,
         byStatus: byStatus.map((r: any) => ({ status: r.status, count: r.count })),

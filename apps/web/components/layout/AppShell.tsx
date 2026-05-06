@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className={[
           'transition-[margin-left] duration-200 ease-in-out',
           'pb-16 md:pb-0',
-          sidebarCollapsed ? 'md:ml-14' : 'md:ml-60',
+          sidebarCollapsed ? 'md:ml-[56px]' : 'md:ml-[240px]',
         ].join(' ')}
         style={{ marginTop: 52, minHeight: 'calc(100vh - 52px)' }}
       >

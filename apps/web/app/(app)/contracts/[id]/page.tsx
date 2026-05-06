@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
-import { ArrowLeft, FileText, Loader2, Truck, Receipt, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, Truck, Receipt, CheckCircle, XCircle, CheckCircle2 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,13 +59,15 @@ const INVOICE_STATUS_STYLE: Record<string, { bg: string; color: string }> = {
   SENT:      { bg: '#e3f2fd', color: '#1565c0' },
   PAID:      { bg: '#e0f8ef', color: '#00875a' },
   OVERDUE:   { bg: '#fce4ec', color: '#c62828' },
+  VOID:      { bg: '#f5f5f5', color: '#9e9e9e' },
   CANCELLED: { bg: '#f5f5f5', color: '#757575' },
 };
 
 const DELIVERY_STATUS_STYLE: Record<string, { bg: string; color: string }> = {
   SCHEDULED:  { bg: '#fff8e1', color: '#e65100' },
+  OVERDUE:    { bg: '#fce4ec', color: '#c62828' },
   COMPLETED:  { bg: '#e0f8ef', color: '#00875a' },
-  CANCELLED:  { bg: '#fce4ec', color: '#c62828' },
+  CANCELLED:  { bg: '#f5f5f5', color: '#757575' },
 };
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
@@ -336,6 +338,10 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
   const [showInvoiceModal, setInvoice]     = useState(false);
   const [showCompleteModal, setComplete]   = useState(false);
   const [actionLoading, setActionLoading]  = useState(false);
+  const [invActioning, setInvActioning]    = useState<string | null>(null);
+  const [paidModal, setPaidModal]          = useState<Invoice | null>(null);
+  const [dlvActioning, setDlvActioning]    = useState<string | null>(null);
+  const [dlvCompleteTarget, setDlvTarget]  = useState<Delivery | null>(null);
 
   const isManager = ['ADMIN', 'MANAGER', 'SYSTEM_ADMIN', 'SALES_MANAGER'].includes(user?.role ?? '');
 
@@ -366,6 +372,48 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
     setDelivery(false);
     setInvoice(false);
     setComplete(false);
+  }
+
+  async function applyInvoiceAction(invId: string, next: string, paidAmount?: number) {
+    setInvActioning(invId);
+    try {
+      const body: Record<string, unknown> = { status: next };
+      if (paidAmount != null) body.paidAmount = paidAmount;
+      const res = await fetch(`/api/invoices/${invId}`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Failed');
+      toast.success(`Invoice ${next.toLowerCase()}`);
+      qc.invalidateQueries({ queryKey: ['contract', id] });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setInvActioning(null);
+      setPaidModal(null);
+    }
+  }
+
+  async function applyDeliveryAction(dlvId: string, next: string, extra?: Record<string, unknown>) {
+    setDlvActioning(dlvId);
+    try {
+      const res = await fetch(`/api/deliveries/${dlvId}`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: next, ...extra }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Failed');
+      toast.success(`Delivery ${next.toLowerCase()}`);
+      qc.invalidateQueries({ queryKey: ['contract', id] });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setDlvActioning(null);
+      setDlvTarget(null);
+    }
   }
 
   if (isLoading) {
@@ -406,6 +454,103 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       )}
       {showCompleteModal && (
         <CompleteContractModal contractId={id} onClose={() => setComplete(false)} onSuccess={onModalSuccess} />
+      )}
+
+      {/* Inline: mark invoice paid */}
+      {paidModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-sm" style={{ color: '#323338' }}>Mark Invoice Paid</h3>
+              <button onClick={() => setPaidModal(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <p className="text-sm mb-3" style={{ color: '#676879' }}>
+              {paidModal.invoiceNumber} — Total ฿{paidModal.total.toLocaleString()}
+            </p>
+            <label className="block text-xs font-semibold mb-1" style={{ color: '#676879' }}>Paid Amount (฿)</label>
+            <input
+              id="paid-amount-input"
+              type="number"
+              defaultValue={paidModal.total}
+              className="w-full border rounded px-3 text-sm outline-none mb-4"
+              style={{ borderColor: '#e6e9ef', height: 36 }}
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setPaidModal(null)}
+                className="flex-1 py-2 text-sm border rounded-lg" style={{ borderColor: '#e6e9ef' }}>
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const v = parseFloat((document.getElementById('paid-amount-input') as HTMLInputElement)?.value ?? '');
+                  applyInvoiceAction(paidModal.id, 'PAID', isNaN(v) ? paidModal.total : v);
+                }}
+                className="flex-1 py-2 text-sm font-semibold text-white rounded-lg"
+                style={{ backgroundColor: '#00897b' }}
+              >
+                Confirm Paid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inline: complete delivery */}
+      {dlvCompleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} style={{ color: '#00897b' }} />
+                <h3 className="font-semibold text-sm" style={{ color: '#323338' }}>Complete Delivery</h3>
+              </div>
+              <button onClick={() => setDlvTarget(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: '#676879' }}>Actual Date</label>
+                <input id="dlv-actual-date" type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  className="w-full border rounded px-3 text-sm outline-none"
+                  style={{ borderColor: '#e6e9ef', height: 36 }} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: '#676879' }}>Driver Name</label>
+                <input id="dlv-driver" type="text"
+                  defaultValue={dlvCompleteTarget.driverName ?? ''}
+                  placeholder="Optional"
+                  className="w-full border rounded px-3 text-sm outline-none"
+                  style={{ borderColor: '#e6e9ef', height: 36 }} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1" style={{ color: '#676879' }}>Vehicle Plate</label>
+                <input id="dlv-plate" type="text"
+                  defaultValue={dlvCompleteTarget.vehiclePlate ?? ''}
+                  placeholder="Optional"
+                  className="w-full border rounded px-3 text-sm outline-none"
+                  style={{ borderColor: '#e6e9ef', height: 36 }} />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setDlvTarget(null)}
+                className="flex-1 py-2 text-sm border rounded-lg" style={{ borderColor: '#e6e9ef' }}>
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const actualDate   = (document.getElementById('dlv-actual-date') as HTMLInputElement)?.value;
+                  const driverName   = (document.getElementById('dlv-driver') as HTMLInputElement)?.value;
+                  const vehiclePlate = (document.getElementById('dlv-plate') as HTMLInputElement)?.value;
+                  applyDeliveryAction(dlvCompleteTarget.id, 'COMPLETED', { actualDate, driverName, vehiclePlate });
+                }}
+                className="flex-1 py-2 text-sm font-semibold text-white rounded-lg"
+                style={{ backgroundColor: '#00897b' }}
+              >
+                Confirm Complete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Back */}
@@ -655,6 +800,8 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
               <div className="divide-y" style={{ borderColor: '#e6e9ef' }}>
                 {contract.deliveries.map((d) => {
                   const ds = DELIVERY_STATUS_STYLE[d.status] ?? DELIVERY_STATUS_STYLE.SCHEDULED;
+                  const canAct = isManager && ['SCHEDULED', 'OVERDUE'].includes(d.status);
+                  const isActioning = dlvActioning === d.id;
                   return (
                     <div key={d.id} className="p-4 flex items-start gap-4">
                       <div
@@ -681,6 +828,28 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                           </p>
                         )}
                       </div>
+                      {canAct && (
+                        <div className="flex gap-2 flex-shrink-0 mt-0.5">
+                          <button
+                            onClick={() => setDlvTarget(d)}
+                            disabled={isActioning}
+                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white rounded-lg disabled:opacity-60"
+                            style={{ backgroundColor: '#00897b' }}
+                          >
+                            {isActioning ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                            Complete
+                          </button>
+                          <button
+                            onClick={() => { if (confirm('Cancel this delivery?')) applyDeliveryAction(d.id, 'CANCELLED'); }}
+                            disabled={isActioning}
+                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-red-50 hover:border-red-200 disabled:opacity-50"
+                            style={{ borderColor: '#e6e9ef', color: '#c62828' }}
+                          >
+                            {isActioning ? <Loader2 size={11} className="animate-spin" /> : <XCircle size={11} />}
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -723,11 +892,19 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                       <th>Tax</th>
                       <th className="text-right">Total (฿)</th>
                       <th>Status</th>
+                      {isManager && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {contract.invoices.map((inv) => {
                       const is = INVOICE_STATUS_STYLE[inv.status] ?? INVOICE_STATUS_STYLE.DRAFT;
+                      const isActioning = invActioning === inv.id;
+                      const INV_ACTIONS: Record<string, { label: string; next: string; color: string }[]> = {
+                        DRAFT:   [{ label: 'Mark Sent', next: 'SENT', color: '#1565c0' }, { label: 'Void', next: 'VOID', color: '#757575' }],
+                        SENT:    [{ label: 'Mark Paid', next: 'PAID', color: '#00875a' }, { label: 'Overdue', next: 'OVERDUE', color: '#c62828' }, { label: 'Void', next: 'VOID', color: '#757575' }],
+                        OVERDUE: [{ label: 'Mark Paid', next: 'PAID', color: '#00875a' }, { label: 'Void', next: 'VOID', color: '#757575' }],
+                      };
+                      const actions = INV_ACTIONS[inv.status] ?? [];
                       return (
                         <tr key={inv.id}>
                           <td><span className="font-mono text-sm font-semibold">{inv.invoiceNumber}</span></td>
@@ -739,6 +916,30 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                             <span className="text-sm font-bold">฿{inv.total.toLocaleString()}</span>
                           </td>
                           <td><Badge label={inv.status.charAt(0) + inv.status.slice(1).toLowerCase()} style={is} /></td>
+                          {isManager && (
+                            <td>
+                              {actions.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  {isActioning ? (
+                                    <Loader2 size={13} className="animate-spin" style={{ color: '#676879' }} />
+                                  ) : actions.map((a) => (
+                                    <button
+                                      key={a.next}
+                                      onClick={() => {
+                                        if (a.next === 'PAID') { setPaidModal(inv); }
+                                        else if (a.next === 'VOID') { if (confirm(`Void invoice ${inv.invoiceNumber}?`)) applyInvoiceAction(inv.id, 'VOID'); }
+                                        else applyInvoiceAction(inv.id, a.next);
+                                      }}
+                                      className="px-2 py-1 text-xs font-semibold rounded whitespace-nowrap hover:opacity-80"
+                                      style={{ backgroundColor: a.color + '18', color: a.color, border: `1px solid ${a.color}40` }}
+                                    >
+                                      {a.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

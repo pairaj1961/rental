@@ -163,7 +163,7 @@ export default function ReportsPage() {
             {[
               { label: 'Total',     value: rentalSummary.total     ?? 0, color: '#1565c0', bg: '#e3f2fd' },
               { label: 'Active',    value: rentalSummary.active    ?? 0, color: '#006b5e', bg: '#e0f2f1' },
-              { label: 'Closed',    value: rentalSummary.closed    ?? 0, color: '#2e7d32', bg: '#e8f5e9' },
+              { label: 'Completed', value: rentalSummary.completed ?? 0, color: '#2e7d32', bg: '#e8f5e9' },
               { label: 'Cancelled', value: rentalSummary.cancelled ?? 0, color: '#c62828', bg: '#fce4ec' },
             ].map(({ label, value, color, bg }) => (
               <div key={label} className="card p-4 text-center">
