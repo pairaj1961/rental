@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx pnpm@9 --filter equipment-rental build",
+  "buildCommand": "npx pnpm@9 --filter @rental/shared build && npx pnpm@9 --filter equipment-rental build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "npx pnpm@9 install --no-frozen-lockfile",
   "framework": "nextjs"
